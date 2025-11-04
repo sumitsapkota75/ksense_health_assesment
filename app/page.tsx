@@ -2,9 +2,10 @@
 import { ErrorDisplay } from "@/components/error";
 import { columns } from "@/components/table";
 import { getPatientLists } from "@/services/patient";
+import getPatientScore from "@/services/patient_score";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Button, Pagination, Table } from "antd";
-import { useState } from "react";
+import { Pagination, Table } from "antd";
+import { useEffect, useState } from "react";
 export default function Home() {
   const [patientQueryParams, setPatientQueryParams] = useState({
     page: 1,
@@ -25,8 +26,12 @@ export default function Home() {
     queryFn: getPatientLists,
     retry: false,
   });
-  console.log("error", error);
   console.log("patient data", patientData);
+
+  useEffect(() => {
+    getPatientScore(patientData?.data)
+  }, [patientData])
+  
 
   if (error) {
     return <ErrorDisplay error={error} refetch={refetch} />;
@@ -36,20 +41,24 @@ export default function Home() {
       <Table
         rowKey={"patient_id"}
         columns={columns}
-        dataSource={patientData?.data || []}
         loading={isLoading}
+        dataSource={patientData?.data}
         pagination={false}
       />
-      <Pagination
-        className="pt-10"
-        align="end"
-        total={patientData?.pagination?.total || 0}
-        current={patientQueryParams.page}
-        pageSize={patientQueryParams.limit}
-        onChange={(page, pageSize) =>
-          setPatientQueryParams({ page, limit: pageSize })
-        }
-      />
+      <div className="pagination pt-5">
+        <Pagination
+          align="end"
+          showTotal={(total) => `Total ${total} items`}
+          total={patientData?.pagination?.total || 0}
+          current={patientQueryParams.page}
+          pageSize={patientQueryParams.limit}
+          onChange={(page, pageSize) =>
+            setPatientQueryParams({ page, limit: pageSize })
+          }
+        />
+      </div>
     </div>
   );
 }
+
+

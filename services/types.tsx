@@ -1,10 +1,10 @@
 export interface IPatientListData {
   patient_id?: string;
   name?: string;
-  age?: number;
+  age?: string | number | null | undefined;
   gender?: "M" | "F" | string;
-  blood_pressure?: string;
-  temperature?: number | string;
+  blood_pressure: string;
+  temperature: string;
   diagnosis?: string;
   medications?: string;
   visit_date?: string;
