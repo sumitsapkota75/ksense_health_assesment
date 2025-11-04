@@ -35,3 +35,9 @@ export interface IPatientAPIResponseData {
   data: IPatientListData[];
   metadata: IMetaData;
 }
+
+
+export interface IErrorDisplayProps {
+  error: unknown;
+  refetch: () => void;
+}

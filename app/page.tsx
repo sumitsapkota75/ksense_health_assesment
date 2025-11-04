@@ -1,8 +1,9 @@
 "use client";
+import { ErrorDisplay } from "@/components/error";
 import { columns } from "@/components/table";
 import { getPatientLists } from "@/services/patient";
 import { useQuery } from "@tanstack/react-query";
-import { Pagination, Table } from "antd";
+import { Alert, Button, Pagination, Table } from "antd";
 import { useState } from "react";
 export default function Home() {
   const [patientQueryParams, setPatientQueryParams] = useState({
@@ -10,16 +11,26 @@ export default function Home() {
     limit: 5,
   });
 
-  const { data: patientData, isLoading } = useQuery({
+  const {
+    data: patientData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: [
       "patient_data",
       patientQueryParams.page,
       patientQueryParams.limit,
     ],
     queryFn: getPatientLists,
+    retry: false,
   });
+  console.log("error", error);
   console.log("patient data", patientData);
 
+  if (error) {
+    return <ErrorDisplay error={error} refetch={refetch} />;
+  }
   return (
     <div className="flex-row min-h-screen p-20 justify-center bg-zinc-50 font-sans dark:bg-black">
       <Table
