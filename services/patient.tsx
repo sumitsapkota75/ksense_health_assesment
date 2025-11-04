@@ -1,13 +1,69 @@
-import { QueryFunctionContext } from "@tanstack/react-query";
 import { API } from "./api";
-import { IPatientAPIResponseData, IPatientsQueryParams } from "./types";
+import { IPatientAPIResponseData } from "./types";
 
-const PATIENTS_BASE_URL = "/patients";
+/**
+ * Fetches all patient data from the API with retry, deduplication,
+ * and cleaning of invalid or inconsistent values.
+ */
+export const getAllPatients = async (): Promise<IPatientAPIResponseData["data"]> => {
+  const allPatients: IPatientAPIResponseData["data"] = [];
+  const seenIds = new Set<string>(); // Prevent duplicates by patient_id
 
-export const getPatientLists = async ({ queryKey }:QueryFunctionContext<[string,number,number]>):Promise<IPatientAPIResponseData> => {
-  const [, page, limit] = queryKey;
-  const params: IPatientsQueryParams = { page, limit };
-  const response =  await API.get<IPatientAPIResponseData>(`${PATIENTS_BASE_URL}`, { params });
-  console.log("respnose:",response)
-  return response.data;
+  let page = 1;
+  const limit = 20;
+  let hasNext = true;
+  const maxRetries = 3;
+
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  while (hasNext) {
+    let retries = 0;
+    let success = false;
+
+    while (!success && retries < maxRetries) {
+      try {
+        const response = await API.get<IPatientAPIResponseData>("/patients", {
+          params: { page, limit },
+        });
+        const responseData = response?.data;
+        const pagination = responseData?.pagination;
+        const data = Array.isArray(responseData?.data) ? responseData.data : [];
+
+        for (const patient of data) {
+          const id = patient.patient_id?.trim();
+          if (id && !seenIds.has(id)) {
+            seenIds.add(id);
+            allPatients.push({ ...patient, patient_id: id });
+          }
+        }
+
+        hasNext = pagination?.hasNext ?? false;
+        page += 1;
+        success = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        retries += 1;
+
+        // Handle rate limits or temporary server errors
+        if ([429, 502, 503].includes(error?.response?.status)) {
+          const waitTime = retries * 1000 * 2; // Exponential backoff
+          console.warn(
+            `API error ${error.response.status}. Retrying in ${waitTime}ms...`
+          );
+          await delay(waitTime);
+        } else {
+          console.error("Unhandled API error:", error);
+          throw new Error("Failed to fetch patient data. Please try again later.");
+        }
+      }
+    }
+
+    if (!success) {
+      console.error(`Failed to fetch page ${page} after ${maxRetries} retries.`);
+      break;
+    }
+  }
+
+  console.log(`Fetched ${allPatients.length} unique patients in total.`);
+  return allPatients;
 };

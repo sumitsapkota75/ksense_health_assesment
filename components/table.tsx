@@ -45,4 +45,23 @@ export const columns = [
     dataIndex: "medications",
     key: "medications",
   },
+  {
+      title: "Status",
+      dataIndex: "tags",
+      render: (tags: string[]) =>
+        tags?.map((tag) => (
+          <span
+            key={tag}
+            className={`px-2 py-1 mr-2 rounded text-white ${
+              tag === "High-Risk"
+                ? "bg-red-500"
+                : tag === "Fever"
+                ? "bg-orange-400"
+                : "bg-gray-500"
+            }`}
+          >
+            {tag}
+          </span>
+        )),
+    },
 ];

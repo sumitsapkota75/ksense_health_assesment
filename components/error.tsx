@@ -34,7 +34,7 @@ const getErrorMessage = (error: unknown): string => {
 
 
 
-export const ErrorDisplay = ({ error, refetch }: IErrorDisplayProps) => {
+export const ErrorDisplay = ({ error }: IErrorDisplayProps) => {
   const errorMessage = getErrorMessage(error);
 
   return (
@@ -45,7 +45,7 @@ export const ErrorDisplay = ({ error, refetch }: IErrorDisplayProps) => {
         type="error"
         showIcon
         action={
-          <Button size="small" danger onClick={refetch}>
+          <Button size="small" danger onClick={()=>{}}>
             Retry
           </Button>
         }
