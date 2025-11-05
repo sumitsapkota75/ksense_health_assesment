@@ -4,7 +4,7 @@ import { columns } from "@/components/table";
 import { getAllPatients, submitPatientData } from "@/services/patient";
 import getPatientScore from "@/services/patient_score";
 import { IPatientWithTags } from "@/services/types";
-import { Button, message, Pagination, Table } from "antd";
+import { Button, message, Modal, Pagination, Table } from "antd";
 import { useEffect, useState } from "react";
 export default function Home() {
   const [patientList, setPatientList] = useState<IPatientWithTags[]>([]);
@@ -40,8 +40,39 @@ export default function Home() {
 
       setIsLoading(true);
       const res = await submitPatientData(patientList);
-      message.success("Patient data submitted successfully!");
-      console.log("Response:", res);
+      if (res?.success) {
+      const result = res.results;
+      const breakdown = result.breakdown;
+      const feedback = result.feedback;
+
+      // 🧩 Build message content dynamically
+      const content = `
+        🩺 Assessment Summary
+        -------------------------
+        ✅ Overall Score: ${result.score}/${result.score} (${result.percentage}%)
+        📊 Status: ${result.status}
+        🧮 Attempt: ${result.attempt_number}/${result.max_attempts}
+        -------------------------
+        🔹 High-Risk Patients: ${breakdown.high_risk.correct}/${breakdown.high_risk.submitted}
+        🔹 Fever Patients: ${breakdown.fever.correct}/${breakdown.fever.submitted}
+        🔹 Data Quality Issues: ${breakdown.data_quality.correct}/${breakdown.data_quality.submitted}
+        -------------------------
+        ${feedback.strengths.length > 0 ? feedback.strengths.join("\n") : ""}
+      `;
+
+      Modal.success({
+        title: "🎉 Assessment Submitted Successfully!",
+        content: (
+          <div style={{ whiteSpace: "pre-line", marginTop: "10px" }}>
+            {content}
+          </div>
+        ),
+        okText: "Great!",
+      });
+    } else {
+      message.warning(res?.message || "Unexpected response from server.");
+    }
+      
     } catch (err) {
       console.error(err);
       message.error("Failed to submit patient data. Please try again.");
