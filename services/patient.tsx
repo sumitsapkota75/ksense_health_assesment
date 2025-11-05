@@ -1,6 +1,7 @@
+import { buildPatientPostPayload } from "@/helpers/patient_post_utils";
 import { API } from "./api";
 import { IPatientAPIResponseData } from "./types";
-
+import { IPatientWithTags } from "./types";
 /**
  * Fetches all patient data from the API with retry, deduplication,
  * and cleaning of invalid or inconsistent values.
@@ -66,4 +67,12 @@ export const getAllPatients = async (): Promise<IPatientAPIResponseData["data"]>
 
   console.log(`Fetched ${allPatients.length} unique patients in total.`);
   return allPatients;
+};
+
+
+export const submitPatientData = async (patients: IPatientWithTags[]) => {
+  const payload = buildPatientPostPayload(patients);
+  console.log({payload})
+  const response = await API.post("/submit-assessment", payload);
+  return response.data;
 };

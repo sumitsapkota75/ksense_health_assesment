@@ -19,12 +19,6 @@ const Header: React.FC = () => {
             All Patients
           </button>
         </div>
-
-        <div className="flex items-center space-x-4">
-          <button className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition cursor-pointer">
-            Submit Request
-          </button>
-        </div>
       </div>
     </header>
   );

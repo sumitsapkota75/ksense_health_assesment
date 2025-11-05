@@ -1,10 +1,10 @@
 "use client";
 import { ErrorDisplay } from "@/components/error";
 import { columns } from "@/components/table";
-import { getAllPatients } from "@/services/patient";
+import { getAllPatients, submitPatientData } from "@/services/patient";
 import getPatientScore from "@/services/patient_score";
 import { IPatientWithTags } from "@/services/types";
-import { Pagination, Table } from "antd";
+import { Button, message, Pagination, Table } from "antd";
 import { useEffect, useState } from "react";
 export default function Home() {
   const [patientList, setPatientList] = useState<IPatientWithTags[]>([]);
@@ -31,12 +31,40 @@ export default function Home() {
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedData = patientList.slice(startIndex, endIndex);
+  const handleSubmit = async () => {
+    try {
+      if (patientList.length === 0) {
+        message.warning("No patient data available to submit.");
+        return;
+      }
+
+      setIsLoading(true);
+      const res = await submitPatientData(patientList);
+      message.success("Patient data submitted successfully!");
+      console.log("Response:", res);
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to submit patient data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (error) {
     return <ErrorDisplay error={error} />;
   }
   return (
     <div className="flex-row min-h-screen p-20 justify-center bg-zinc-50 font-sans dark:bg-black">
+      <div className="flex items-center space-x-4">
+          <Button
+          type="primary"
+          onClick={handleSubmit}
+          loading={isLoading}
+          className="ml-4"
+        >
+          Submit Request
+        </Button>
+        </div>
       <Table
         rowKey={"patient_id"}
         columns={columns}
