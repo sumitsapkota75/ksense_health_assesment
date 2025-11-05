@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+--  create a file .env in project root directory and copy the content from env.format file on root directory
+
 First, run the development server:
 
 ```bash
